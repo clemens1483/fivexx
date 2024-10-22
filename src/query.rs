@@ -21,6 +21,7 @@ pub enum QueryExecutionError {
     BadQueryStatus(String),
     NoData,
     ClientError(String),
+    ParseError(String),
 }
 
 impl fmt::Display for QueryExecutionError {
@@ -30,10 +31,11 @@ impl fmt::Display for QueryExecutionError {
             QueryExecutionError::BadQueryStatus(msg) => write!(f, "Bad query status: {}", msg),
             QueryExecutionError::NoData => write!(f, "No data found"),
             QueryExecutionError::ClientError(msg) => write!(f, "Client error: {}", msg),
+            QueryExecutionError::ParseError(msg) => write!(f, "Parse error: {}", msg),
         }
     }
 }
 
 impl std::error::Error for QueryExecutionError {}
 
-pub type QueryResult = Vec<HashMap<String, String>>;
+pub type QueryResult = Vec<HashMap<String, serde_json::Value>>;

@@ -2,7 +2,7 @@ mod csv_formatter;
 mod json_formatter;
 
 pub use csv_formatter::CSVFormatter;
-// pub use json_formatter::JSONFormatter;
+pub use json_formatter::JSONFormatter;
 
 use crate::query::QueryResult;
 

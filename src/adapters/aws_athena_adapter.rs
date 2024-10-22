@@ -15,18 +15,23 @@ use crate::{
     query::{QueryError, QueryExecutionError, QueryResult},
 };
 
+use async_trait::async_trait;
+
 pub struct AwsAthenaAdapter<'a> {
     details: &'a AwsAthenaALBLog,
 }
 
-impl<'a> QueryAdapter<'a> for AwsAthenaAdapter<'a> {
-    fn new(data_source: &'a DataSource) -> Self {
+impl<'a> AwsAthenaAdapter<'a> {
+    pub fn new(data_source: &'a DataSource) -> Self {
         match &data_source.details {
             DataSourceDetails::AwsAthenaALBLog(details) => Self { details },
             _ => panic!("AwsAthenaAdapter requires an AwsAthenaALBLog data source"),
         }
     }
+}
 
+#[async_trait]
+impl<'a> QueryAdapter<'a> for AwsAthenaAdapter<'a> {
     async fn execute_query(&self, query: &str) -> Result<QueryResult, QueryExecutionError> {
         let client = Client::new(&self.details.region).await;
 

@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use aws_sdk_athena::types::Row;
+use serde_json::Value;
 
 use crate::query::QueryResult;
 
@@ -26,14 +27,14 @@ impl QueryResultProcessor {
                 }
             } else {
                 // Data
-                let mut row_hash: HashMap<String, String> = HashMap::new();
+                let mut row_hash: HashMap<String, Value> = HashMap::new();
 
                 for (index, value) in row_data.iter().enumerate() {
                     // TODO: clone is not great
                     let key = headers.get(index).unwrap().clone();
                     let value = value.var_char_value.clone().unwrap();
 
-                    row_hash.insert(key, value);
+                    row_hash.insert(key, Value::String(value));
                 }
 
                 result.push(row_hash);

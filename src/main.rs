@@ -4,6 +4,7 @@ use commands::{configure, query, Commands};
 mod adapters;
 mod commands;
 mod config;
+mod correlator;
 mod formatters;
 mod parallel_querier;
 mod parsers;
@@ -22,15 +23,9 @@ struct Cli {
 //   - implement --output format
 //   - improve QueryError
 //   - implement --debug mode (improve query logging)
-//   - implement query mode
-//         QUERY (
-//          SELECT * FROM data_source.table SINCE  AGO COUNT BY controller,action
-//          ) FROM datasets 123, 456 // FROM *
-//        COMBINE RESULTS BY SUM
 //   - implement count by hour, week
 //   - implement parallel execution
 //   - add dataset columns, etc. to output
-//   - domain configure
 //   implement average by (potentially should have "aggregators", also want percentiles, etc.)
 // --aggregate-by=day, --aggreggation=  - aggregat/select e.g. --select="COUNT(*)" --group-by=day
 

@@ -39,31 +39,33 @@ impl Formatter for CSVFormatter {
     fn format(&self, data: QueryResult) -> Self::Output {
         let mut output = String::new();
 
-        if data.is_empty() {
-            return Ok(output);
-        }
+        Ok("".to_string())
 
-        let first_row = &data[0];
+        // if data.is_empty() {
+        //     return Ok(output);
+        // }
 
-        let headers: Vec<String> = first_row.keys().map(|key| key.to_string()).collect();
+        // let first_row = &data[0];
 
-        output.push_str(&headers.join(&self.delimiter.to_string()));
-        output.push('\n');
+        // let headers: Vec<String> = first_row.keys().map(|key| key.to_string()).collect();
 
-        for row in &data {
-            let formatted_row = headers
-                .iter()
-                .map(|header| {
-                    let value = row.get(header).unwrap();
-                    self.escape_field(value)
-                })
-                .collect::<Vec<String>>()
-                .join(&self.delimiter.to_string());
+        // output.push_str(&headers.join(&self.delimiter.to_string()));
+        // output.push('\n');
 
-            output.push_str(&formatted_row);
-            output.push('\n');
-        }
+        // for row in &data {
+        //     let formatted_row = headers
+        //         .iter()
+        //         .map(|header| {
+        //             let value = row.get(header).unwrap();
+        //             self.escape_field(value)
+        //         })
+        //         .collect::<Vec<String>>()
+        //         .join(&self.delimiter.to_string());
 
-        Ok(output)
+        //     output.push_str(&formatted_row);
+        //     output.push('\n');
+        // }
+
+        // Ok(output)
     }
 }

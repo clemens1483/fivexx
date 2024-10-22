@@ -14,12 +14,17 @@ const TIME_FORMAT: &str = "%Y-%m-%d-%H:%M:%S";
 pub enum ColumnType {
     String,
     Integer,
+    DateTime,
 }
 
-const ATHENA_ALB_COLUMNS: [AthenaAlbColumn; 4] = [
+const ATHENA_ALB_COLUMNS: [AthenaAlbColumn; 9] = [
     AthenaAlbColumn {
         name: "day",
         col_type: ColumnType::String,
+    },
+    AthenaAlbColumn {
+        name: "time",
+        col_type: ColumnType::DateTime,
     },
     AthenaAlbColumn {
         name: "domain_name",
@@ -30,7 +35,23 @@ const ATHENA_ALB_COLUMNS: [AthenaAlbColumn; 4] = [
         col_type: ColumnType::Integer,
     },
     AthenaAlbColumn {
+        name: "target_status_code",
+        col_type: ColumnType::Integer,
+    },
+    AthenaAlbColumn {
         name: "request_url",
+        col_type: ColumnType::String,
+    },
+    AthenaAlbColumn {
+        name: "request_method",
+        col_type: ColumnType::String,
+    },
+    AthenaAlbColumn {
+        name: "client_ip",
+        col_type: ColumnType::String,
+    },
+    AthenaAlbColumn {
+        name: "target_ip",
         col_type: ColumnType::String,
     },
     // AthenaAlbColumn::TargetStatusCode,
@@ -42,11 +63,31 @@ pub struct AthenaAlbColumn {
     pub col_type: ColumnType,
 }
 
+#[derive(Debug)]
+pub enum ParsedValue {
+    Integer(i64),
+    String(String),
+    DateTime(NaiveDateTime),
+}
+
 impl AthenaAlbColumn {
-    pub fn parse_value(&self, value: &str) -> String {
+    pub fn prepare_value(&self, value: &str) -> String {
         match self.col_type {
-            ColumnType::String => format!("'{}'", value),
+            ColumnType::String | ColumnType::DateTime => format!("'{}'", value),
             ColumnType::Integer => value.to_string(),
+        }
+    }
+
+    pub fn parse_value(&self, value: &str) -> Result<ParsedValue, String> {
+        match self.col_type {
+            ColumnType::Integer => value
+                .parse::<i64>()
+                .map(ParsedValue::Integer)
+                .map_err(|e| format!("Failed to parse integer: {}", e)),
+            ColumnType::String => Ok(ParsedValue::String(value.to_string())),
+            ColumnType::DateTime => NaiveDateTime::parse_from_str(value, "%Y-%m-%dT%H:%M:%S%.fZ")
+                .map(ParsedValue::DateTime)
+                .map_err(|e| format!("Failed to parse datetime: {}", e)),
         }
     }
 
@@ -140,7 +181,7 @@ impl QueryBuilder<'_> {
 
                     let formatted_values = values
                         .iter()
-                        .map(|v| column.parse_value(v))
+                        .map(|v| column.prepare_value(v))
                         .collect::<Vec<String>>()
                         .join(",");
                     self.where_clauses.push(format!(
@@ -158,7 +199,7 @@ impl QueryBuilder<'_> {
                 "{} {} {}",
                 column.as_str(),
                 op,
-                column.parse_value(value)
+                column.prepare_value(value)
             ));
         }
 
