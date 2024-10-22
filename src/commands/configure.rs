@@ -2,7 +2,9 @@ use std::collections::HashMap;
 
 use inquire::{Confirm, Select, Text};
 
-use crate::config::{AwsAthenaALBLog, Config, DataSource, DataSourceDetails, DataSourceType};
+use crate::config::{
+    AwsAthenaALBLog, Config, DataSource, DataSourceDetails, DataSourceType, NewRelicLog,
+};
 
 use super::ConfigureArgs;
 
@@ -33,12 +35,18 @@ pub fn configure(args: ConfigureArgs) -> Result<(), Box<dyn std::error::Error>> 
         loop {
             let data_source = add_data_source(&defaults)?;
 
-            let DataSourceDetails::AwsAthenaALBLog(ref details) = data_source.details;
-
-            defaults.insert("region", details.region.clone());
-            defaults.insert("catalog", details.catalog.clone());
-            defaults.insert("workgroup", details.workgroup.clone());
-            defaults.insert("database", details.database.clone());
+            match data_source.details {
+                DataSourceDetails::AwsAthenaALBLog(ref details) => {
+                    defaults.insert("region", details.region.clone());
+                    defaults.insert("catalog", details.catalog.clone());
+                    defaults.insert("workgroup", details.workgroup.clone());
+                    defaults.insert("database", details.database.clone());
+                }
+                DataSourceDetails::NewRelicLog(ref details) => {
+                    defaults.insert("api_key", details.api_key.clone());
+                    defaults.insert("account_id", details.account_id.clone());
+                }
+            }
 
             config.data_sources.push(data_source);
 
@@ -81,6 +89,17 @@ fn add_data_source(
                 catalog,
                 workgroup,
                 database,
+                table,
+            })
+        }
+        DataSourceType::NewRelicLog => {
+            let api_key = prompt_string("Enter the New Relic API key", None)?;
+            let account_id = prompt_string("Enter the New Relic account ID", None)?;
+            let table = prompt_string("Enter the table name", None)?;
+
+            DataSourceDetails::NewRelicLog(NewRelicLog {
+                api_key,
+                account_id,
                 table,
             })
         }

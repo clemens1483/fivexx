@@ -13,6 +13,7 @@ pub static CONFIG: LazyLock<Config> = LazyLock::new(|| Config::load().unwrap());
 pub enum DataSourceType {
     #[default]
     AwsAthenaALBLog,
+    NewRelicLog,
 }
 
 impl FromStr for DataSourceType {
@@ -21,13 +22,14 @@ impl FromStr for DataSourceType {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
             "aws_athena" => Ok(DataSourceType::AwsAthenaALBLog),
+            "new_relic_log" => Ok(DataSourceType::NewRelicLog),
             _ => Err(format!("Unknown data source type: {}", s)),
         }
     }
 }
 impl DataSourceType {
-    pub fn all() -> [DataSourceType; 1] {
-        [DataSourceType::AwsAthenaALBLog]
+    pub fn all() -> [DataSourceType; 2] {
+        [DataSourceType::AwsAthenaALBLog, DataSourceType::NewRelicLog]
     }
 }
 
@@ -35,6 +37,7 @@ impl Display for DataSourceType {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             DataSourceType::AwsAthenaALBLog => write!(f, "AwsAthenaALBLog"),
+            DataSourceType::NewRelicLog => write!(f, "NewRelicLog"),
         }
     }
 }
@@ -47,6 +50,12 @@ pub struct DataSource {
     pub details: DataSourceDetails,
 }
 
+impl PartialEq for DataSource {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AwsAthenaALBLog {
     pub region: String,
@@ -57,8 +66,16 @@ pub struct AwsAthenaALBLog {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NewRelicLog {
+    pub api_key: String,
+    pub account_id: String,
+    pub table: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum DataSourceDetails {
     AwsAthenaALBLog(AwsAthenaALBLog),
+    NewRelicLog(NewRelicLog),
 }
 
 impl Default for DataSourceDetails {
