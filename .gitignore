@@ -22,3 +22,4 @@ Cargo.lock
 
 result.csv
 result.json
+column_mappings.json

@@ -4,6 +4,7 @@ use serde_json::{json, Value};
 
 use crate::{
     adapters::{AdapterFactory, QueryAdapter},
+    column_mappings::get_mapping,
     config::DataSource,
     formatters::{CSVFormatter, Formatter, JSONFormatter},
     parsers::{CorrelateCondition, QueryInput, QueryParser, Select, Where},
@@ -75,7 +76,14 @@ pub async fn query(args: QueryArgs) {
         println!("\n{}\n", query);
 
         match adapter.execute_query(&query).await {
-            Ok(result) => {
+            Ok(mut result) => {
+                for row in &mut result {
+                    row.insert(
+                        "data_source_id".to_string(),
+                        Value::String(data_source.id.clone()),
+                    );
+                }
+
                 results.extend(result);
             }
             Err(e) => println!("{:?}", e),
@@ -91,12 +99,27 @@ pub async fn query(args: QueryArgs) {
             for dependent_condition in &correlate.dependent_conditions {
                 match dependent_condition {
                     CorrelateCondition::Is { parent, child } => {
+                        let default: HashMap<String, String> = HashMap::new();
+
+                        let mapping = get_mapping(
+                            row["data_source_id"].as_str().unwrap(),
+                            &correlate.data_source.id,
+                            parent,
+                            child,
+                        )
+                        .unwrap_or(&default);
+
                         if let Some(parent_value) = row.get(parent) {
                             match parent_value {
                                 Value::String(str_value) => {
+                                    let value = match mapping.get(str_value) {
+                                        Some(val) => val,
+                                        None => str_value,
+                                    };
+
                                     correlated_query_input
                                         .conditions
-                                        .push(Where::Equals(child.clone(), str_value.clone()));
+                                        .push(Where::Equals(child.clone(), value.clone()));
                                 }
                                 _ => continue,
                             }

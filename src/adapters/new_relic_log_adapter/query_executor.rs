@@ -56,8 +56,6 @@ impl<'a> QueryExecutor<'a> {
             .await
             .map_err(|e| QueryExecutionError::ParseError(e.to_string()))?;
 
-        println!("JSON: {:?}", json_response);
-
         Self::transform_json_response(json_response)
     }
 

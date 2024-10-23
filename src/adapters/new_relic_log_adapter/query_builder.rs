@@ -156,6 +156,38 @@ impl<'a> QueryBuilder<'a> {
                     self.where_clauses
                         .push(format!("{} LIKE '{}'", column.name, pattern));
                 }
+                Where::GreaterThan(col, value) => {
+                    let column = NewRelicLogColumn::from_str(col)?;
+                    self.where_clauses.push(format!(
+                        "{} > {}",
+                        column.name,
+                        column.parse_value(value)
+                    ));
+                }
+                Where::LessThan(col, value) => {
+                    let column = NewRelicLogColumn::from_str(col)?;
+                    self.where_clauses.push(format!(
+                        "{} < {}",
+                        column.name,
+                        column.parse_value(value)
+                    ));
+                }
+                Where::GreaterThanOrEqual(col, value) => {
+                    let column = NewRelicLogColumn::from_str(col)?;
+                    self.where_clauses.push(format!(
+                        "{} >= {}",
+                        column.name,
+                        column.parse_value(value)
+                    ));
+                }
+                Where::LessThanOrEqual(col, value) => {
+                    let column = NewRelicLogColumn::from_str(col)?;
+                    self.where_clauses.push(format!(
+                        "{} <= {}",
+                        column.name,
+                        column.parse_value(value)
+                    ));
+                }
                 _ => panic!("Unsupported where clause: {:?}", condition),
             }
         }
